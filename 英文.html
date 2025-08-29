@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英文會考成績計算器</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 25px;
+  }
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  .left-panel, .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #34495e;
+  }
+  input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    text-align: center;
+    margin-top: 5px;
+    box-sizing: border-box;
+  }
+  #scoreCanvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    background-color: #ecf0f1;
+    margin-top: 20px;
+  }
+  .score-display {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .final-score-label {
+    font-size: 1.2em;
+    color: #7f8c8d;
+  }
+  .final-score {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #2980b9;
+    margin: 10px 0;
+  }
+  .grade-level {
+    font-size: 2em;
+    font-weight: bold;
+    color: #e74c3c;
+  }
+
+  /* 針對寬螢幕的佈局優化 */
+  @media (min-width: 768px) {
+    .main-content {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .left-panel {
+      flex: 1;
+      padding-right: 30px;
+    }
+    .right-panel {
+      flex: 1.2;
+      padding-left: 30px;
+    }
+    .grading-scale-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .input-group.grade-input {
+      flex: 1 1 calc(50% - 15px);
+      min-width: 150px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>英文會考成績計算器 Google Gemini</h1>
+  
+  <div class="main-content">
+    <div class="left-panel">
+      <div class="input-group">
+        <label for="reading-total-input">閱讀題總題數：</label>
+        <input type="number" id="reading-total-input" min="1" value="43">
+      </div>
+      <div class="input-group">
+        <label for="reading-slider">閱讀題答對題數：<span id="reading-value">0</span> / <span id="reading-total">43</span></label>
+        <input type="range" id="reading-slider" min="0" max="43" value="0">
+      </div>
+
+      <div class="input-group">
+        <label for="listening-total-input">聽力題總題數：</label>
+        <input type="number" id="listening-total-input" min="1" value="21">
+      </div>
+      <div class="input-group">
+        <label for="listening-slider">聽力題答對題數：<span id="listening-value">0</span> / <span id="listening-total">21</span></label>
+        <input type="range" id="listening-slider" min="0" max="21" value="0">
+      </div>
+      
+      <h3>自訂等第分數標準 (最低分數)</h3>
+      <div class="grading-scale-inputs">
+        <div class="input-group grade-input">
+          <label for="a-plus-plus-min">A++:</label>
+          <input type="number" id="a-plus-plus-min" value="98.14" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="a-plus-min">A+:</label>
+          <input type="number" id="a-plus-min" value="95.33" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="a-min">A:</label>
+          <input type="number" id="a-min" value="90.70" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="b-plus-plus-min">B++:</label>
+          <input type="number" id="b-plus-plus-min" value="83.21" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="b-plus-min">B+:</label>
+          <input type="number" id="b-plus-min" value="71.05" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="b-min">B:</label>
+          <input type="number" id="b-min" value="38.43" min="0" max="100" step="0.01">
+        </div>
+        <div class="input-group grade-input">
+          <label for="c-min">C:</label>
+          <input type="number" id="c-min" value="0.00" min="0" max="100" step="0.01">
+        </div>
+      </div>
+    </div>
+    
+    <div class="right-panel">
+      <canvas id="scoreCanvas"></canvas>
+      <div class="score-display">
+        <p class="final-score-label">您的加權總分是：</p>
+        <p class="final-score" id="final-score-text">0.000</p>
+        <p class="grade-level" id="grade-level-text"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 等待 DOM 加載完成
+  window.addEventListener('DOMContentLoaded', (event) => {
+    // 取得 DOM 元素
+    const readingSlider = document.getElementById('reading-slider');
+    const listeningSlider = document.getElementById('listening-slider');
+    const readingValueSpan = document.getElementById('reading-value');
+    const listeningValueSpan = document.getElementById('listening-value');
+    const readingTotalInput = document.getElementById('reading-total-input');
+    const listeningTotalInput = document.getElementById('listening-total-input');
+    const readingTotalSpan = document.getElementById('reading-total');
+    const listeningTotalSpan = document.getElementById('listening-total');
+    const finalScoreText = document.getElementById('final-score-text');
+    const gradeLevelText = document.getElementById('grade-level-text');
+    const canvas = document.getElementById('scoreCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 取得等第分數輸入框
+    const aPlusPlusInput = document.getElementById('a-plus-plus-min');
+    const aPlusInput = document.getElementById('a-plus-min');
+    const aInput = document.getElementById('a-min');
+    const bPlusPlusInput = document.getElementById('b-plus-plus-min');
+    const bPlusInput = document.getElementById('b-plus-min');
+    const bInput = document.getElementById('b-min');
+    const cInput = document.getElementById('c-min');
+
+    // 設定畫布尺寸
+    const canvasWidth = 460;
+    const canvasHeight = 200;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // 根據分數判斷等第
+    function getGrade(score) {
+      // 修正: 先將分數四捨五入到小數點後三位，以避免浮點數誤差
+      const roundedScore = parseFloat(score.toFixed(2));
+      
+      // 從輸入框讀取動態分數標準
+      const gradeRanges = [
+        { grade: 'A++', min: parseFloat(aPlusPlusInput.value) || 0 },
+        { grade: 'A+', min: parseFloat(aPlusInput.value) || 0 },
+        { grade: 'A', min: parseFloat(aInput.value) || 0 },
+        { grade: 'B++', min: parseFloat(bPlusPlusInput.value) || 0 },
+        { grade: 'B+', min: parseFloat(bPlusInput.value) || 0 },
+        { grade: 'B', min: parseFloat(bInput.value) || 0 },
+        { grade: 'C', min: parseFloat(cInput.value) || 0 }
+      ];
+
+      // 檢查並排序，確保分數由高到低
+      gradeRanges.sort((a, b) => b.min - a.min);
+
+      for (const range of gradeRanges) {
+        if (roundedScore >= range.min) {
+          return range.grade;
+        }
+      }
+      return 'C'; // 預設為 C
+    }
+
+    // 繪製畫布內容
+    function drawCanvas() {
+      // 取得滑桿的值
+      const correctReading = parseInt(readingSlider.value);
+      const correctListening = parseInt(listeningSlider.value);
+
+      // 取得總題數
+      const totalReadingQuestions = parseInt(readingTotalInput.value) || 1;
+      const totalListeningQuestions = parseInt(listeningTotalInput.value) || 1;
+
+      // 更新頁面上的答對題數和總題數
+      readingValueSpan.textContent = correctReading;
+      listeningValueSpan.textContent = correctListening;
+      readingTotalSpan.textContent = totalReadingQuestions;
+      listeningTotalSpan.textContent = totalListeningQuestions;
+
+      // 設定權重
+      const readingWeight = 0.8;
+      const listeningWeight = 0.2;
+
+      // 計算各部分的滿分100分數
+      const readingScore = (correctReading / totalReadingQuestions) * 100;
+      const listeningScore = (correctListening / totalListeningQuestions) * 100;
+
+      // 計算加權總分
+      const totalScore = (readingScore * readingWeight) + (listeningScore * listeningWeight);
+
+      // 根據分數判斷等第
+      const grade = getGrade(totalScore);
+
+      // 更新最終分數文字和等第，精確到小數點後三位
+      finalScoreText.textContent = totalScore.toFixed(2);
+      gradeLevelText.textContent = `等第: ${grade}`;
+
+      // 清空畫布以重新繪製
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      // 繪製背景
+      ctx.fillStyle = '#ecf0f1';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // 繪製標題
+      ctx.font = '20px Arial';
+      ctx.fillStyle = '#2c3e50';
+      ctx.textAlign = 'center';
+      ctx.fillText(`成績視覺化 (${grade})`, canvasWidth / 2, 30);
+
+      // 繪製分數條
+      const barHeight = 40;
+      const readingBarWidth = (readingScore / 100) * (canvasWidth - 60);
+      const listeningBarWidth = (listeningScore / 100) * (canvasWidth - 60);
+
+      // 閱讀題分數條
+      ctx.fillStyle = '#3498db';
+      ctx.fillRect(30, 60, readingBarWidth, barHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`閱讀題: ${readingScore.toFixed(3)}`, 35, 87);
+
+      // 聽力題分數條
+      ctx.fillStyle = '#2ecc71';
+      ctx.fillRect(30, 110, listeningBarWidth, barHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`聽力題: ${listeningScore.toFixed(3)}`, 35, 137);
+    }
+
+    // 監聽所有輸入框和滑桿的變化
+    const allInputs = [
+      readingTotalInput, listeningTotalInput, readingSlider, listeningSlider,
+      aPlusPlusInput, aPlusInput, aInput, bPlusPlusInput, bPlusInput, bInput, cInput
+    ];
+    allInputs.forEach(input => {
+      input.addEventListener('input', drawCanvas);
+    });
+
+    // 處理總題數輸入框的邏輯
+    readingTotalInput.addEventListener('input', () => {
+      let newTotal = parseInt(readingTotalInput.value);
+      if (newTotal < 1 || isNaN(newTotal)) {
+        newTotal = 1;
+        readingTotalInput.value = 1;
+      }
+      readingSlider.max = newTotal;
+      if (parseInt(readingSlider.value) > newTotal) {
+        readingSlider.value = newTotal;
+      }
+      drawCanvas();
+    });
+
+    listeningTotalInput.addEventListener('input', () => {
+      let newTotal = parseInt(listeningTotalInput.value);
+      if (newTotal < 1 || isNaN(newTotal)) {
+        newTotal = 1;
+        listeningTotalInput.value = 1;
+      }
+      listeningSlider.max = newTotal;
+      if (parseInt(listeningSlider.value) > newTotal) {
+        listeningSlider.value = newTotal;
+      }
+      drawCanvas();
+    });
+
+    // 初始繪製
+    drawCanvas();
+  });
+</script>
+
+</body>
+</html>
